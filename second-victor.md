@@ -16,18 +16,9 @@ Date       :
 
 ## Scenario
 
-Overnight, Microsoft Entra ID Protection raised Incident 87241 against a finance user: a sign-in from an anonymous IP, flagged on `m.smith`, rated **Low**. The night shift triaged it, found nothing actionable, and left it in the queue.
+Overnight, Microsoft Entra ID Protection raised Incident 87241 against a finance user: a sign-in from an anonymous IP, flagged on `m.smith`, rated **Low**. The night shift triaged it, found nothing actionable, and left it in the queue. Low-severity identity alerts on finance staff are exactly where a patient operator hides, and this one was no different.
 
-This is a cloud-only intrusion. No malware, no endpoint to image. Everything the attacker did was through identity, mail, files, and cloud services, and every action left a trace in a different table. The investigation spans sign-in logs, mailbox audit, Graph activity, and mail events.
-
-**What the night shift could not answer:**
-
-- Whether the Low rating is correct, or whether the machine dismissed a full compromise
-- What the operator did once inside, and what they took
-- What persisted, and whether it still acts with nobody signed in
-- Who else was drawn into the fraud, and how
-
-The detection caught one sign-in. It did not ask what happened next. That is your job.
+This is a cloud-only intrusion with no malware to reverse and no endpoint to image. Everything the attacker did was through identity, mail, files, and cloud services, and every action left a trace in a different table. The investigation spans sign-in logs, mailbox audit, Graph activity, and mail events. The detection caught one sign-in. It did not ask what happened next.
 
 ---
 
@@ -64,7 +55,7 @@ The detection caught one sign-in. It did not ask what happened next. That is you
 
 ## Stage 01: Triage
 
-Triage begins at the incident itself. The goal is to confirm who was targeted, where the sign-in came from, what the machine detected, and whether the automated verdict can be trusted. Low-severity identity alerts on finance staff are exactly where a patient operator hides, so the machine's rating is a starting point, not a conclusion.
+Triage begins at the incident itself. The goal is to confirm who was targeted, where the sign-in came from, what the machine detected, and whether the automated verdict can be trusted. Low-severity identity alerts on finance staff are exactly where a patient operator hides, so the machine's rating is a starting point, not a conclusion. The Evidence and Response pane in Defender XDR is the first stop before touching the Sentinel workspace.
 
 ---
 
@@ -164,7 +155,7 @@ SigninLogs
 
 ## Stage 02: Session Scope
 
-Session scope maps the attacker's footprint from first authentication through to every service they touched. The key questions are how they got past the authentication controls, what they accessed once inside, and what identifier threads the sign-in to downstream activity.
+Session scope maps the attacker's footprint from first authentication through to every service they touched. The key questions are how they got past the authentication controls, what they accessed once inside, and what identifier threads the sign-in to downstream activity. A single session can span multiple tables, so finding the common key is what makes the rest of the investigation possible. Everything here is in SigninLogs.
 
 ---
 
@@ -287,7 +278,7 @@ SigninLogs
 
 ## Stage 03: Directory Recon
 
-Before committing to fraud, a patient operator profiles the environment. This stage looks for Graph API calls made during the session that reveal what the attacker was trying to learn: MFA posture, group memberships, org structure: and how that intelligence shaped what came next.
+Before committing to fraud, a patient operator profiles the environment. This stage looks for Graph API calls made during the session that reveal what the attacker was trying to learn: MFA posture, group memberships, and org structure. Understanding what the attacker queried tells you what they needed to know before acting, and why they were confident the fraud would work. The evidence lives in MicrosoftGraphActivityLogs, pivoting on the session identifier confirmed in Stage 02.
 
 ---
 
@@ -339,7 +330,7 @@ MicrosoftGraphActivityLogs
 
 ## Stage 04: The Fraud
 
-The fraud stage reconstructs how the attacker converted mailbox access into a financial attack. This means finding the fraudulent outbound email, identifying the thread they mined to make it credible, confirming who was targeted, and tracing whether the request was pushed through any channel beyond mail.
+The fraud stage reconstructs how the attacker converted mailbox access into a financial attack. This means finding the fraudulent outbound email, identifying the thread they mined to make it credible, confirming who was targeted, and tracing whether the request was pushed through any channel beyond mail. BEC attacks succeed because they exploit trust: the target receives a request from a known colleague, in a familiar context, using the right language. The goal here is to document the full chain from recon to delivery.
 
 ---
 
@@ -358,7 +349,7 @@ EmailEvents
 
 **Screenshot**
 
-<
+<!-- ![Q14](screenshots/q14.png) -->
 
 ---
 
@@ -430,30 +421,22 @@ OfficeActivity
 
 ---
 
-## Stage 05: Persistence Hunt
-
-**Context**
-
-| Field | Value |
-|---|---|
-| Inbox rule name | |
-| Rule condition | |
-| Rule action | |
-| Forwarding address | |
-| OAuth app consent | |
-| New MFA method added | |
-| Other persistence | |
+Persistence is what separates a one-time intrusion from a long-term presence. This stage hunts for mechanisms the attacker left behind to maintain access or suppress evidence after the session ends. Inbox rules are the most common cloud persistence technique: they operate silently, survive password resets, and can forward or hide mail with no further attacker involvement. The goal is to find everything that still acts even when nobody is signed in.
 
 ---
 
 ### Q18: The Concealment Rule
 
-**Question:**
+**Question:** They changed something on the mailbox so a conversation wouldn't be seen. Find the rule and give me its name.
 
-**Answer:**
+**Answer:** `Invoice Processing`
 
 ```kql
-
+OfficeActivity
+| where TimeGenerated < datetime(2026-06-11T13:00:00Z)
+| where UserId == "m.smith@lognpacific.org"
+| where Operation contains "rule"
+| project TimeGenerated, Operation, Parameters
 ```
 
 **Screenshot**
@@ -464,13 +447,9 @@ OfficeActivity
 
 ### Q19: Where the Hidden Mail Goes
 
-**Question:**
+**Question:** That rule doesn't delete the mail it catches, it moves it to a normal-looking folder. Tell me why an attacker moves instead of deletes, and what the choice of an ordinary folder buys them.
 
-**Answer:**
-
-```kql
-
-```
+**Answer:** `avoid detection`
 
 **Screenshot**
 
@@ -480,12 +459,16 @@ OfficeActivity
 
 ### Q20: The Exfiltration Rule
 
-**Question:**
+**Question:** There is a second rule that sends mail outside the org. Give me the destination address.
 
-**Answer:**
+**Answer:** `merovingian1337@proton.me`
 
 ```kql
-
+OfficeActivity
+| where TimeGenerated < datetime(2026-06-11T13:00:00Z)
+| where UserId == "m.smith@lognpacific.org"
+| where Operation contains "rule"
+| project TimeGenerated, Operation, Parameters
 ```
 
 **Screenshot**
@@ -496,17 +479,21 @@ OfficeActivity
 
 ### Q21: Who Both Rules Target
 
-**Question:**
+**Question:** Both mailbox rules act on inbound mail from one person. Tell me why the persistence rules single out their mail specifically. What conversation are the rules built to stop the victim from seeing.
 
-**Answer:**
-
-```kql
-
-```
+**Answer:** `fraud reply`
 
 **Screenshot**
 
 <!-- ![Q21](screenshots/q21.png) -->
+
+**Stage 05 Notes**
+
+- Two inbox rules created: "Invoice Processing" moves mail from j.reynolds to Archive, "Backup Copy" forwards it externally to merovingian1337@proton.me
+- Both rules filter on mail from j.reynolds@lognpacific.org specifically: the fraud target whose reply would expose the attack
+- Moving to Archive rather than deleting avoids triggering deletion alerts and looks like normal filing behaviour
+- The external forwarding address uses ProtonMail, an encrypted provider that makes interception harder to action
+- These rules persist after the attacker's session ends and would continue operating silently through any future sign-in by m.smith
 
 ---
 
