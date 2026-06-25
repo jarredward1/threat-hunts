@@ -8,8 +8,8 @@ Platform   : Microsoft 365 · Entra ID · Defender XDR
 Window     : 2026-06-11 03:00 to 13:00 UTC
 Flags      : 38 across multiple stages
 Difficulty : Intermediate · T2
-Hunter     :
-Date       :
+Hunter     : Jarred Ward
+Date       : June 24, 2026
 ```
 
 ---
@@ -47,9 +47,7 @@ This is a cloud-only intrusion with no malware to reverse and no endpoint to ima
 
 **Answer:** `Tier-2 hunter ready`
 
-**Screenshot**
-
-<!-- ![Q00](screenshots/q00.png) -->
+<img width="569" height="107" alt="q00" src="https://github.com/user-attachments/assets/175a9904-6ae9-47d3-99d5-596fdbd92fe8" />
 
 ---
 
@@ -65,9 +63,7 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `m.smith@lognpacific.org`
 
-**Screenshot**
-
-<!-- ![Q01](screenshots/q01.png) -->
+<img width="905" height="133" alt="q01" src="https://github.com/user-attachments/assets/356c2b44-ccaa-48b1-b4cc-689d322b1159" />
 
 ---
 
@@ -77,9 +73,7 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `103.69.224.136`
 
-**Screenshot**
-
-<!-- ![Q02](screenshots/q02.png) -->
+<img width="721" height="105" alt="q02" src="https://github.com/user-attachments/assets/2b1628a8-539a-482a-b05f-36fd88b04525" />
 
 ---
 
@@ -89,9 +83,7 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `Linux`
 
-**Screenshot**
-
-<!-- ![Q03](screenshots/q03.png) -->
+<img width="589" height="349" alt="q03" src="https://github.com/user-attachments/assets/7aac039b-1824-4b08-be77-940626000723" />
 
 ---
 
@@ -108,9 +100,7 @@ SigninLogs
 | project TimeGenerated, RiskEventTypes, RiskEventTypes_V2, RiskLevel, RiskDetail
 ```
 
-**Screenshot**
-
-<!-- ![Q04](screenshots/q04.png) -->
+<img width="625" height="227" alt="q04" src="https://github.com/user-attachments/assets/e634e044-7f41-400b-b946-7415309a62cd" />
 
 ---
 
@@ -128,9 +118,7 @@ SigninLogs
 | summarize count() by RiskState
 ```
 
-**Screenshot**
-
-<!-- ![Q05](screenshots/q05.png) -->
+<img width="293" height="135" alt="q05" src="https://github.com/user-attachments/assets/616baac4-3bd3-4f38-a919-0e76e5df82b3" />
 
 ---
 
@@ -140,9 +128,7 @@ SigninLogs
 
 **Answer:** `Enabled`
 
-**Screenshot**
-
-<!-- ![Q06](screenshots/q06.png) -->
+<img width="437" height="83" alt="q06" src="https://github.com/user-attachments/assets/97c4d5c5-af9e-49c0-bedd-74c4851f992e" />
 
 **Stage 01 Notes**
 
@@ -174,9 +160,7 @@ SigninLogs
 | project TimeGenerated, IPAddress, AuthenticationDetails, AuthenticationRequirement
 ```
 
-**Screenshot**
-
-<!-- ![Q07](screenshots/q07.png) -->
+<img width="808" height="130" alt="q07" src="https://github.com/user-attachments/assets/40fc9a22-2789-46e9-ac68-538dee617bd8" />
 
 ---
 
@@ -196,9 +180,7 @@ SigninLogs
 | project TimeGenerated, ResultSignature, AppDisplayName
 ```
 
-**Screenshot**
-
-<!-- ![Q08](screenshots/q08.png) -->
+<img width="559" height="118" alt="q08" src="https://github.com/user-attachments/assets/28db8d16-1644-4fad-8a29-2f702038ed06" />
 
 ---
 
@@ -217,9 +199,7 @@ SigninLogs
 | project TimeGenerated, ResultSignature, ResultDescription, Identity
 ```
 
-**Screenshot**
-
-<!-- ![Q09](screenshots/q09.png) -->
+<img width="714" height="134" alt="q09" src="https://github.com/user-attachments/assets/2e248165-8e43-4d17-a4ff-a8e81a14f70b" />
 
 ---
 
@@ -239,9 +219,7 @@ SigninLogs
 | count
 ```
 
-**Screenshot**
-
-<!-- ![Q10](screenshots/q10.png) -->
+<img width="304" height="134" alt="q10" src="https://github.com/user-attachments/assets/32a4eab5-d5da-485a-a4a1-4b8fca810a8b" />
 
 ---
 
@@ -261,9 +239,7 @@ SigninLogs
 | order by TimeGenerated asc
 ```
 
-**Screenshot**
-
-<!-- ![Q11](screenshots/q11.png) -->
+<img width="876" height="131" alt="q11" src="https://github.com/user-attachments/assets/ea35c32d-0320-49fd-8237-8e757c635735" />
 
 **Stage 02 Notes**
 
@@ -295,9 +271,7 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, UserId, ResponseStatusCode
 ```
 
-**Screenshot**
-
-<!-- ![Q12](screenshots/q12.png) -->
+<img width="1294" height="131" alt="q12" src="https://github.com/user-attachments/assets/aa0a8277-a14e-4ecc-8135-93abf139a8e7" />
 
 ---
 
@@ -315,9 +289,7 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, UserId, ResponseStatusCode
 ```
 
-**Screenshot**
-
-<!-- ![Q13](screenshots/q13.png) -->
+<img width="510" height="100" alt="q13" src="https://github.com/user-attachments/assets/d3c0a460-b23b-494d-9365-376988ea2250" />
 
 **Stage 03 Notes**
 
@@ -347,9 +319,7 @@ EmailEvents
 | project TimeGenerated, DeliveryLocation, EmailDirection, RecipientEmailAddress, Subject
 ```
 
-**Screenshot**
-
-<!-- ![Q14](screenshots/q14.png) -->
+<img width="1117" height="126" alt="q14" src="https://github.com/user-attachments/assets/5015d1bb-1ee4-430d-9fdf-5b33b9bb18ca" />
 
 ---
 
@@ -368,9 +338,7 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-**Screenshot**
-
-<!-- ![Q15](screenshots/q15.png) -->
+<img width="927" height="190" alt="q15" src="https://github.com/user-attachments/assets/9118fc7b-79bc-4def-9bfc-30c79ebcddd2" />
 
 ---
 
@@ -389,9 +357,7 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-**Screenshot**
-
-<!-- ![Q16](screenshots/q16.png) -->
+<img width="927" height="190" alt="q16" src="https://github.com/user-attachments/assets/284d3f36-916a-4062-91e7-94e0e787b49a" />
 
 ---
 
@@ -408,9 +374,7 @@ OfficeActivity
 | project TimeGenerated, OfficeWorkload, RecordType, Operation, UserId
 ```
 
-**Screenshot**
-
-<!-- ![Q17](screenshots/q17.png) -->
+<img width="927" height="161" alt="q17" src="https://github.com/user-attachments/assets/fe5cbcc7-5d33-48da-bdbf-96a04f88c230" />
 
 **Stage 04 Notes**
 
@@ -439,9 +403,7 @@ OfficeActivity
 | project TimeGenerated, Operation, Parameters
 ```
 
-**Screenshot**
-
-<!-- ![Q18](screenshots/q18.png) -->
+<img width="536" height="424" alt="q18" src="https://github.com/user-attachments/assets/2bff0ac4-a099-40e0-8e9c-bda83b21bda2" />
 
 ---
 
@@ -450,10 +412,6 @@ OfficeActivity
 **Question:** That rule doesn't delete the mail it catches, it moves it to a normal-looking folder. Tell me why an attacker moves instead of deletes, and what the choice of an ordinary folder buys them.
 
 **Answer:** `avoid detection`
-
-**Screenshot**
-
-<!-- ![Q19](screenshots/q19.png) -->
 
 ---
 
@@ -471,9 +429,7 @@ OfficeActivity
 | project TimeGenerated, Operation, Parameters
 ```
 
-**Screenshot**
-
-<!-- ![Q20](screenshots/q20.png) -->
+<img width="536" height="362" alt="q20" src="https://github.com/user-attachments/assets/118d67f4-1610-46b7-89d6-e2a48616545d" />
 
 ---
 
@@ -482,10 +438,6 @@ OfficeActivity
 **Question:** Both mailbox rules act on inbound mail from one person. Tell me why the persistence rules single out their mail specifically. What conversation are the rules built to stop the victim from seeing.
 
 **Answer:** `fraud reply`
-
-**Screenshot**
-
-<!-- ![Q21](screenshots/q21.png) -->
 
 **Stage 05 Notes**
 
@@ -516,9 +468,7 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-**Screenshot**
-
-<!-- ![Q22](screenshots/q22.png) -->
+<img width="978" height="168" alt="q22" src="https://github.com/user-attachments/assets/d664e74d-8428-4366-8bbf-b214a2fc369a" />
 
 ---
 
@@ -535,9 +485,7 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-**Screenshot**
-
-<!-- ![Q23](screenshots/q23.png) -->
+<img width="978" height="168" alt="q23" src="https://github.com/user-attachments/assets/650cc139-26bc-4029-a02a-628f9067c1eb" />
 
 ---
 
@@ -554,9 +502,7 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-**Screenshot**
-
-<!-- ![Q24](screenshots/q24.png) -->
+<img width="978" height="168" alt="q24" src="https://github.com/user-attachments/assets/947e0f5f-8709-4f16-9514-766216e9c6e7" />
 
 ---
 
@@ -574,9 +520,7 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-**Screenshot**
-
-<!-- ![Q25](screenshots/q25.png) -->
+<img width="1019" height="159" alt="q25" src="https://github.com/user-attachments/assets/14a1d0d0-10d3-4dcc-bb7d-e509cc2180bb" />
 
 **Stage 06 Notes**
 
@@ -609,9 +553,7 @@ SigninLogs
 | count
 ```
 
-**Screenshot**
-
-<!-- ![Q26](screenshots/q26.png) -->
+<img width="298" height="104" alt="q26" src="https://github.com/user-attachments/assets/f6429d4c-2b89-4f5e-aceb-da370733ea68" />
 
 ---
 
@@ -628,9 +570,7 @@ SigninLogs
 | distinct AppDisplayName
 ```
 
-**Screenshot**
-
-<!-- ![Q27](screenshots/q27.png) -->
+<img width="379" height="305" alt="q27" src="https://github.com/user-attachments/assets/284116d5-2317-4da6-ab8d-374941b17599" />
 
 ---
 
@@ -640,9 +580,7 @@ SigninLogs
 
 **Answer:** `MicrosoftGraphActivityLogs`
 
-**Screenshot**
-
-<!-- ![Q28](screenshots/q28.png) -->
+<img width="587" height="50" alt="q28" src="https://github.com/user-attachments/assets/7fa6f6d1-d00e-4a53-909b-dc49e34df987" />
 
 ---
 
@@ -666,9 +604,10 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-**Screenshot**
+<img width="679" height="133" alt="q29a" src="https://github.com/user-attachments/assets/c58d95e5-d58e-4f95-b02e-8ff13743463d" />
 
-<!-- ![Q29](screenshots/q29.png) -->
+<img width="637" height="133" alt="q29b" src="https://github.com/user-attachments/assets/8354109f-0159-4507-ba63-aea7ca521615" />
+
 
 **Stage 07 Notes**
 
@@ -697,9 +636,7 @@ MicrosoftGraphActivityLogs
 | where RequestUri contains "forward"
 ```
 
-**Screenshot**
-
-<!-- ![Q30](screenshots/q30.png) -->
+<img width="356" height="133" alt="q30" src="https://github.com/user-attachments/assets/2d966875-5f66-4724-a335-d533b1d431f9" />
 
 ---
 
@@ -716,9 +653,7 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, AppId
 ```
 
-**Screenshot**
-
-<!-- ![Q31](screenshots/q31.png) -->
+<img width="685" height="109" alt="q31" src="https://github.com/user-attachments/assets/5e7545d0-15e5-4029-b767-fbde11490b42" />
 
 ---
 
@@ -735,9 +670,7 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, AppId, UserAgent
 ```
 
-**Screenshot**
-
-<!-- ![Q32](screenshots/q32.png) -->
+<img width="1174" height="131" alt="q32" src="https://github.com/user-attachments/assets/aa17cb0a-5fc2-4d5b-9fa9-44e8ac27dd54" />
 
 ---
 
@@ -746,8 +679,6 @@ MicrosoftGraphActivityLogs
 **Question:** One address runs through the whole case. Count how many distinct log sources it appears in. Window: 10 to 20 June 2026 UTC. Scope: in-scope tables from the data dictionary only, where the IP literally appears in a field.
 
 **Answer:** `7`
-
-*AuditLogs is the only in-scope table with no IP address field containing the attacker IP.*
 
 ```kql
 SigninLogs
@@ -758,10 +689,6 @@ SigninLogs
 
 *Run individually for each in-scope table and count those returning > 0.*
 
-**Screenshot**
-
-<!-- ![Q33](screenshots/q33.png) -->
-
 ---
 
 ### Q34: Containment Ordering
@@ -770,10 +697,6 @@ SigninLogs
 
 **Answer:** `revoke session`
 
-**Screenshot**
-
-<!-- ![Q34](screenshots/q34.png) -->
-
 ---
 
 ### Q35: Where the Flow Is Removed
@@ -781,10 +704,6 @@ SigninLogs
 **Question:** That flow can't be removed from Sentinel or the Exchange rules. Where do you go to find and delete it.
 
 **Answer:** `Power Platform admin center`
-
-**Screenshot**
-
-<!-- ![Q35](screenshots/q35.png) -->
 
 ---
 
@@ -802,9 +721,7 @@ SigninLogs
 | project TimeGenerated, ConditionalAccessStatus, ClientAppUsed, AuthenticationRequirement
 ```
 
-**Screenshot**
-
-<!-- ![Q36](screenshots/q36.png) -->
+<img width="712" height="129" alt="q36" src="https://github.com/user-attachments/assets/10436533-212b-4103-853c-edd92e01258f" />
 
 ---
 
@@ -813,10 +730,6 @@ SigninLogs
 **Question:** Someone wants to reset m.smith's password and call it done. Tell me why a password reset alone doesn't lock this attacker out, and what action has to come first.
 
 **Answer:** `session token survives, revoke access`
-
-**Screenshot**
-
-<!-- ![Q37](screenshots/q37.png) -->
 
 **Stage 08 Notes**
 
