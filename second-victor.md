@@ -1,4 +1,4 @@
-# Hunt 08: Second Vector
+# Threat Hunt: Second Vector
 ### M365 Compromise & Business Email Compromise
 
 ```
