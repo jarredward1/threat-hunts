@@ -687,12 +687,14 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q30: The Automation Source IP
 
-**Question:**
+**Question:** That forward didn't come from the attacker's address or the user's machine. Where did it come from. Give me the IP.
 
-**Answer:**
+**Answer:** `20.150.129.194`
 
 ```kql
-
+MicrosoftGraphActivityLogs
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where RequestUri contains "forward"
 ```
 
 **Screenshot**
@@ -703,12 +705,15 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q31: The Automation Identity
 
-**Question:**
+**Question:** The forward call is signed by an app. Give me the app id off that record.
 
-**Answer:**
+**Answer:** `7ab7862c-4c57-491e-8a45-d52a7e023983`
 
 ```kql
-
+MicrosoftGraphActivityLogs
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where RequestUri contains "forward"
+| project TimeGenerated, RequestUri, AppId
 ```
 
 **Screenshot**
@@ -717,14 +722,17 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ---
 
-### Q32: (title to be confirmed)
+### Q32: Name the Abused Service
 
-**Question:**
+**Question:** The app they signed into, the call that fired, the app id behind it. Name the service they used to forward the mail.
 
-**Answer:**
+**Answer:** `Power Automate`
 
 ```kql
-
+MicrosoftGraphActivityLogs
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where AppId == "7ab7862c-4c57-491e-8a45-d52a7e023983"
+| project TimeGenerated, AppId, UserAgent
 ```
 
 **Screenshot**
@@ -735,13 +743,20 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q33: One Actor, Every Source
 
-**Question:**
+**Question:** One address runs through the whole case. Count how many distinct log sources it appears in. Window: 10 to 20 June 2026 UTC. Scope: in-scope tables from the data dictionary only, where the IP literally appears in a field.
 
-**Answer:**
+**Answer:** `7`
+
+*AuditLogs is the only in-scope table with no IP address field containing the attacker IP.*
 
 ```kql
-
+SigninLogs
+| where TimeGenerated between (datetime(2026-06-10T00:00:00Z) .. datetime(2026-06-20T23:59:59Z))
+| where IPAddress == "103.69.224.136"
+| count
 ```
+
+*Run individually for each in-scope table and count those returning > 0.*
 
 **Screenshot**
 
@@ -751,9 +766,9 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q34: Containment Ordering
 
-**Question:**
+**Question:** Before you delete a rule or a flow, one action comes first or they're straight back in. What is it.
 
-**Answer:**
+**Answer:** `revoke session`
 
 **Screenshot**
 
@@ -761,15 +776,11 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ---
 
-### Q35: (title to be confirmed)
+### Q35: Where the Flow Is Removed
 
-**Question:**
+**Question:** That flow can't be removed from Sentinel or the Exchange rules. Where do you go to find and delete it.
 
-**Answer:**
-
-```kql
-
-```
+**Answer:** `Power Platform admin center`
 
 **Screenshot**
 
@@ -779,9 +790,17 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q36: The Control That Never Fired
 
-**Question:**
+**Question:** A foreign single-factor sign-in should have been the easiest thing in the world for Conditional Access to stop. Check what Conditional Access actually did on these sign-ins, then tell me what you found and why that's how the session got through.
 
-**Answer:**
+**Answer:** `notApplied, legacy client not covered by policy`
+
+```kql
+SigninLogs
+| where UserPrincipalName == "m.smith@lognpacific.org"
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where ResultType == 0
+| project TimeGenerated, ConditionalAccessStatus, ClientAppUsed, AuthenticationRequirement
+```
 
 **Screenshot**
 
@@ -791,33 +810,21 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 ### Q37: Why Revoke Before Reset
 
-**Question:**
+**Question:** Someone wants to reset m.smith's password and call it done. Tell me why a password reset alone doesn't lock this attacker out, and what action has to come first.
 
-**Answer:**
+**Answer:** `session token survives, revoke access`
 
 **Screenshot**
 
 <!-- ![Q37](screenshots/q37.png) -->
 
----
-
-### Q38: (title to be confirmed)
-
-**Question:**
-
-**Answer:**
-
-```kql
-
-```
-
-**Screenshot**
-
-<!-- ![Q38](screenshots/q38.png) -->
-
 **Stage 08 Notes**
 
-<!-- Fill in after stage is complete -->
+- The forward fired from 20.150.129.194, an Azure infrastructure IP, not the attacker's known address: confirming automation ran independently of the live session
+- AppId 7ab7862c-4c57-491e-8a45-d52a7e023983 maps to Power Automate (formerly Microsoft Flow), confirmed by the UserAgent string containing `microsoft-flow/1.0`
+- The attacker IP appeared in 7 of 8 in-scope tables: AuditLogs is the only one with no IP address field containing 103.69.224.136
+- CA was never invoked because the legacy browser client path fell outside the scope of any CA policy: ConditionalAccessStatus shows notApplied across every sign-in
+- A password reset alone does not contain this compromise: the stolen session token remains valid until explicitly revoked, meaning the attacker retains access even after a credential change
 
 ---
 
@@ -829,6 +836,7 @@ Correlation ties every thread of the investigation back to one actor and one inf
 | 2026-06-11 03:09 | Stage 02 / SigninLogs | First successful sign-in via One Outlook Web, singleFactorAuthentication |
 | 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to userRegistrationDetails to confirm MFA not registered |
 | 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to /v1.0/me/memberOf to enumerate group memberships |
+| 2026-06-11 03:09 | Stage 07 / SigninLogs | Sign-in to Microsoft Flow Portal to build forwarding automation |
 | 2026-06-11 03:13 | Stage 02 / SigninLogs | Token replayed across 7 apps with no MFA re-prompt |
 | 2026-06-11 03:13 | Stage 04 / OfficeActivity / EmailEvents | Mailbox recon: MailItemsAccessed events, thread "Q1 Vendor Payment Schedule - Review Required" read |
 | 2026-06-11 03:28 | Stage 05 / OfficeActivity | Inbox rule "Invoice Processing" created: moves j.reynolds mail to Archive |
@@ -838,6 +846,7 @@ Correlation ties every thread of the investigation back to one actor and one inf
 | 2026-06-11 03:39 | Stage 04 / EmailEvents | Fraudulent email sent to j.reynolds: "Updated Banking Details - Pacific IT Monthly" |
 | 2026-06-11 03:44 | Stage 04 / OfficeActivity | Fraud reinforced via Microsoft Teams |
 | 2026-06-11 05:08 | Stage 02 / CloudAppEvents | Last confirmed attacker activity |
+| Post-session | Stage 07 / MicrosoftGraphActivityLogs | Power Automate flow fires forward from 20.150.129.194 with no live session |
 
 ---
 
@@ -846,8 +855,10 @@ Correlation ties every thread of the investigation back to one actor and one inf
 | Type | Value | Context |
 |---|---|---|
 | IP | 103.69.224.136 | Anon sign-in source, Amsterdam NL, linked to incidents 87241 and 87236 |
+| IP | 20.150.129.194 | Azure Power Automate infrastructure IP that fired the external forward |
 | UPN | m.smith@lognpacific.org | Compromised finance account (Mark Smith) |
 | Session | 005d431a-380b-1f5e-e554-16d5010dc28e | Attacker session GUID spanning all app access |
+| App ID | 7ab7862c-4c57-491e-8a45-d52a7e023983 | Power Automate app ID used to sign and fire the forwarding flow |
 | Email | merovingian1337@proton.me | External forwarding destination for Backup Copy inbox rule |
 | UPN | j.reynolds@lognpacific.org | Fraud target: recipient of fraudulent payment redirect email |
 | File | VPN-Access-Credentials.txt | Downloaded credential document from IT-Credentials folder |
@@ -862,7 +873,7 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 | | |
 |---|---|
-| Flags captured | 25 / 38 |
+| Flags captured | 38 / 38 |
 | Hunt duration | |
 | Completed | |
 | Sign-off | |
