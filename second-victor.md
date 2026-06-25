@@ -78,7 +78,7 @@ This one is cloud. No malware to reverse, no endpoint to image. Everything the a
 ## 🔍 Stage 01: Triage
 *Confirm the principal, the source, the OS, and audit the machine's verdict.*
 
-Triage begins at the incident itself. The goal is to confirm who was targeted, where the sign-in came from, what the machine detected, and whether the automated verdict can be trusted. Low-severity identity alerts on finance staff are exactly where a patient operator hides, so the machine's rating is a starting point, not a conclusion. The Evidence and Response pane in Defender XDR is the first stop before touching the Sentinel workspace.
+Triage begins at the incident itself. The goal is to confirm who was targeted, where the sign-in came from, what the machine detected, and whether the automated verdict can be trusted. The machine's rating is a starting point, not a conclusion. The Evidence and Response pane in Defender XDR is the first stop before touching the Sentinel workspace.
 
 ---
 
@@ -169,10 +169,10 @@ SigninLogs
 
 **Stage 01 Notes**
 
-- m.smith@lognpacific.org signed in from anonymous IP 103.69.224.136 in Amsterdam on a Linux client: atypical for a finance user
+- `m.smith@lognpacific.org` signed in from anonymous IP `103.69.224.136` in Amsterdam on a Linux client: atypical for a finance user
 - Entra rated the detection Low and auto-dismissed it without investigation, leaving the account Enabled
 - The same IP appeared in linked incident 87236 against a separate user, pointing to shared attacker infrastructure rather than a single targeted compromise
-- The Low rating did not reflect the reality: full compromise with no containment taken
+- The Low rating did not reflect reality: this was a full compromise with no containment taken
 
 ---
 
@@ -299,7 +299,7 @@ SigninLogs
 - Despite the tenant enforcing MFA, AuthenticationRequirement resolved to singleFactorAuthentication across every successful sign-in, meaning MFA was never challenged
 - Every successful sign-in showed authenticationMethod "Previously satisfied": a stolen token with MFA already baked in was replayed with no re-prompt (MITRE T1550.004)
 - The token reached 7 distinct apps within the session window
-- SessionId 005d431a-380b-1f5e-e554-16d5010dc28e is consistent across all sign-in rows and is the pivot key into downstream tables
+- SessionId `005d431a-380b-1f5e-e554-16d5010dc28e` is consistent across all sign-in rows and is the pivot key into downstream tables
 
 ---
 
@@ -354,9 +354,9 @@ MicrosoftGraphActivityLogs
 **Stage 03 Notes**
 
 - First Graph call hit `/beta/reports/authenticationMethods/userRegistrationDetails` filtered on m.smith with `isMfaCapable eq true`: the attacker was confirming MFA was not registered before acting
-- Second call enumerated group memberships via `/v1.0/me/memberOf`, followed by a direct lookup of group ec5fd539-89a9-489b-8b61-ab2c1b8f9386 by ID
-- The sequence: MFA check, then group map, then fraud: shows deliberate pre-operation intelligence gathering, not opportunistic browsing
-- The recon almost certainly answered whether j.reynolds had the authority to action a payment request from m.smith
+- Second call enumerated group memberships via `/v1.0/me/memberOf`, followed by a direct lookup of group `ec5fd539-89a9-489b-8b61-ab2c1b8f9386` by ID
+- The sequence — MFA check, then group map, then fraud — shows deliberate pre-operation intelligence gathering, not opportunistic browsing
+- The recon almost certainly answered whether `j.reynolds` had the authority to action a payment request from `m.smith`
 
 ---
 
@@ -416,11 +416,9 @@ EmailEvents
 ```kql
 // Stage 04 · EmailEvents
 EmailEvents
-| where TimeGenerated < (datetime(2026-06-11T03:00:00Z))
-| where Subject contains "payment"
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
 | where SenderMailFromAddress == "m.smith@lognpacific.org"
 | project TimeGenerated, SenderFromAddress, RecipientEmailAddress, Subject
-| order by TimeGenerated asc
 ```
 
 
@@ -451,10 +449,9 @@ OfficeActivity
 
 **Stage 04 Notes**
 
-- The attacker read "Q1 Vendor Payment Schedule - Review Required", an internal thread predating the intrusion by months, to extract payment approval context before constructing the fraud
-- Fraudulent email sent from m.smith@lognpacific.org to j.reynolds@lognpacific.org with subject "Updated Banking Details - Pacific IT Monthly": specific enough to appear routine for a finance team
-- The same request was reinforced via Microsoft Teams: two channels from the same trusted colleague reads as urgency, not suspicion
-- The fraud was not improvised: the attacker understood the org's payment workflow before sending a single message
+- The attacker read `Q1 Vendor Payment Schedule - Review Required`, an internal thread predating the intrusion by months, to extract payment approval context and identify the right target before constructing the fraud
+- The fraudulent email to `j.reynolds@lognpacific.org` with subject `Updated Banking Details - Pacific IT Monthly` was precise enough to pass as routine finance correspondence
+- Reinforcing the request via Microsoft Teams created a two-channel delivery from a trusted colleague, which reads as urgency rather than suspicion
 
 ---
 
@@ -525,11 +522,10 @@ OfficeActivity
 
 **Stage 05 Notes**
 
-- Two inbox rules created: "Invoice Processing" moves mail from j.reynolds to Archive, "Backup Copy" forwards it externally to merovingian1337@proton.me
-- Both rules filter on mail from j.reynolds@lognpacific.org specifically: the fraud target whose reply would expose the attack
+- Two inbox rules created: `Invoice Processing` moves mail from `j.reynolds` to Archive, `Backup Copy` forwards it externally to `merovingian1337@proton.me`
+- Both rules filter on mail from `j.reynolds@lognpacific.org` specifically: the fraud target whose reply would expose the attack
 - Moving to Archive rather than deleting avoids triggering deletion alerts and looks like normal filing behaviour
-- The external forwarding address uses ProtonMail, an encrypted provider that makes interception harder to action
-- These rules persist after the attacker's session ends and would continue operating silently through any future sign-in by m.smith
+- The external forwarding address uses ProtonMail, an encrypted provider that makes interception harder to act on
 
 ---
 
@@ -617,11 +613,11 @@ CloudAppEvents
 
 ---
 
-> "Three files in 90 seconds: a financial ledger, the real vendor banking details, and VPN credentials. Each one has a purpose. Nothing was grabbed at random. The attacker knew exactly where to look."
+> "Three files in 90 seconds: `Book.xlsx`, the real vendor banking details, and VPN credentials. Each one has a purpose. Nothing was grabbed at random. The attacker knew exactly where to look."
 
 **Stage 06 Notes**
 
-- Three files downloaded at 03:37 UTC: `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, all from attacker IP 103.69.224.136
+- Three files downloaded at 03:37 UTC: `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, all from attacker IP `103.69.224.136`
 - `Vendor-Banking-Details.txt` directly supports the fraud: the attacker likely read the real banking details before substituting their own
 - `VPN-Access-Credentials.txt` widens the compromise beyond the mailbox and suggests the attacker is positioning for persistent network access
 - `Yomark.pdf` was accessed but not downloaded: opened in place, likely a credential store index or password reference document
@@ -720,7 +716,7 @@ EmailEvents
 **Stage 07 Notes**
 
 - MFA was satisfied 0 times across the entire session, directly disproving the "user on a VPN" explanation: a legitimate user authenticating via VPN would still satisfy MFA
-- Microsoft Flow Portal appearing in a finance user's session is the plant: Power Automate is a developer/automation tool with no legitimate use case for m.smith
+- Microsoft Flow Portal appearing in a finance user's session is the plant: Power Automate has no expected use case for a finance user and its presence signals the attacker was building automation, not doing their job
 - The forward fired via a Graph API call, not an inbox rule, and not by a live user session: this is the automation built in Flow
 - The Graph call preceded the mail event, confirming the flow executed the forward programmatically before it appeared in the mail logs
 
@@ -847,9 +843,9 @@ SigninLogs
 
 **Stage 08 Notes**
 
-- The forward fired from 20.150.129.194, an Azure infrastructure IP, not the attacker's known address: confirming automation ran independently of the live session
-- AppId 7ab7862c-4c57-491e-8a45-d52a7e023983 maps to Power Automate (formerly Microsoft Flow), confirmed by the UserAgent string containing `microsoft-flow/1.0`
-- The attacker IP appeared in 7 of 8 in-scope tables: AuditLogs is the only one with no IP address field containing 103.69.224.136
+- The forward fired from `20.150.129.194`, an Azure infrastructure IP, not the attacker's known address: confirming automation ran independently of the live session
+- AppId `7ab7862c-4c57-491e-8a45-d52a7e023983` maps to Power Automate (formerly Microsoft Flow), confirmed by the UserAgent string containing `microsoft-flow/1.0`
+- The attacker IP appeared in 7 of 8 in-scope tables: AuditLogs is the only one with no IP address field containing `103.69.224.136`
 - CA was never invoked because the legacy browser client path fell outside the scope of any CA policy: ConditionalAccessStatus shows notApplied across every sign-in
 - A password reset alone does not contain this compromise: the stolen session token remains valid until explicitly revoked, meaning the attacker retains access even after a credential change
 
@@ -859,7 +855,7 @@ SigninLogs
 
 | Time (UTC) | Table | Event |
 |---|---|---|
-| 2026-06-11 03:07 | SigninLogs | 2 bad-password failures from 103.69.224.136 against m.smith |
+| 2026-06-11 03:07 | SigninLogs | 2 bad-password failures from `103.69.224.136` against m.smith |
 | 2026-06-11 03:09 | SigninLogs | First successful sign-in via One Outlook Web, singleFactorAuthentication |
 | 2026-06-11 03:09 | MicrosoftGraphActivityLogs | Graph API call to userRegistrationDetails to confirm MFA not registered |
 | 2026-06-11 03:09 | MicrosoftGraphActivityLogs | Graph API call to /v1.0/me/memberOf to enumerate group memberships |
@@ -896,7 +892,7 @@ SigninLogs
 
 ## Executive Summary
 
-On June 11, 2026, a threat actor authenticated to `m.smith@lognpacific.org` by replaying a stolen session token from anonymized IP `103.69.224.136` in Amsterdam, bypassing MFA because the legacy browser client path fell outside the tenant's Conditional Access policies. After two failed password attempts, the actor entered via `One Outlook Web` at `03:09 UTC` and immediately queried the Graph API to confirm MFA was not registered on the account and to map the victim's group memberships via `/v1.0/me/memberOf` before taking any destructive action. Using context mined from a months-old internal payment thread `Q1 Vendor Payment Schedule - Review Required`, the actor sent a fraudulent banking detail update with subject `Updated Banking Details - Pacific IT Monthly` to finance approver `j.reynolds@lognpacific.org` and reinforced it through `Microsoft Teams` to simulate urgency from a trusted colleague. To suppress the fraud reply, two inbox rules were created targeting `j.reynolds@lognpacific.org`: rule `Invoice Processing` archiving inbound mail silently, and rule `Backup Copy` forwarding it externally to `merovingian1337@proton.me`. Three files were then deliberately pulled from SharePoint, `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, indicating the attacker was positioning for access well beyond the mailbox. Before signing out at approximately `05:08 UTC`, the actor planted a `Power Automate` flow (`7ab7862c-4c57-491e-8a45-d52a7e023983`) that fired autonomously at `12:41 UTC` from Azure infrastructure IP `20.150.129.194`, forwarding mail with no live session present. The stolen session token `005d431a-380b-1f5e-e554-16d5010dc28e` remained valid throughout, the inbox rules continued acting silently, and the flow continued executing: a password reset alone would not have contained this compromise.
+On June 11, 2026, a threat actor authenticated to `m.smith@lognpacific.org` by replaying a stolen session token from anonymized IP `103.69.224.136` in Amsterdam, bypassing MFA because the legacy browser client path fell outside the tenant's Conditional Access policies. After two failed password attempts, the actor entered via `One Outlook Web` at `03:09 UTC` and immediately queried the Graph API to confirm MFA was not registered on the account and to map the victim's group memberships via `/v1.0/me/memberOf` before taking any destructive action. Using context mined from a months-old internal payment thread `Q1 Vendor Payment Schedule - Review Required`, the actor constructed a fraudulent banking detail update and sent it to finance approver `j.reynolds@lognpacific.org` with subject `Updated Banking Details - Pacific IT Monthly`. The request was simultaneously reinforced through `Microsoft Teams` to simulate urgency from a trusted colleague. To suppress the fraud reply, two inbox rules were created targeting `j.reynolds@lognpacific.org`: rule `Invoice Processing` archiving inbound mail silently, and rule `Backup Copy` forwarding it externally to `merovingian1337@proton.me`. Three files were then deliberately pulled from SharePoint, `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, indicating the attacker was positioning for access well beyond the mailbox. Before signing out at approximately `05:08 UTC`, the actor planted a `Power Automate` flow (`7ab7862c-4c57-491e-8a45-d52a7e023983`) that fired autonomously at `12:41 UTC` from Azure infrastructure IP `20.150.129.194`, forwarding mail with no live session present. The stolen session token `005d431a-380b-1f5e-e554-16d5010dc28e` remained valid throughout, the inbox rules continued acting silently, and the flow continued executing: a password reset alone would not have contained this compromise.
 
 ---
 
