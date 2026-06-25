@@ -806,12 +806,17 @@ Correlation ties every thread of the investigation back to one actor and one inf
 |---|---|---|
 | 2026-06-11 03:07 | Stage 02 / SigninLogs | 2 bad-password failures from 103.69.224.136 against m.smith |
 | 2026-06-11 03:09 | Stage 02 / SigninLogs | First successful sign-in via One Outlook Web, singleFactorAuthentication |
-| 2026-06-11 03:09 to 05:03 | Stage 02 / SigninLogs | Token replayed across 7 apps with no MFA re-prompt |
-| | | |
-| | | |
-| | | |
-| | | |
-| | | |
+| 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to userRegistrationDetails to confirm MFA not registered |
+| 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to /v1.0/me/memberOf to enumerate group memberships |
+| 2026-06-11 03:13 | Stage 02 / SigninLogs | Token replayed across 7 apps with no MFA re-prompt |
+| 2026-06-11 03:13 | Stage 04 / OfficeActivity / EmailEvents | Mailbox recon: MailItemsAccessed events, thread "Q1 Vendor Payment Schedule - Review Required" read |
+| 2026-06-11 03:28 | Stage 05 / OfficeActivity | Inbox rule "Invoice Processing" created: moves j.reynolds mail to Archive |
+| 2026-06-11 03:32 | Stage 05 / OfficeActivity | Inbox rule "Backup Copy" created: forwards j.reynolds mail to merovingian1337@proton.me |
+| 2026-06-11 03:37 | Stage 06 / CloudAppEvents | 3 files downloaded: Book.xlsx, Vendor-Banking-Details.txt, VPN-Access-Credentials.txt |
+| 2026-06-11 03:39 | Stage 06 / CloudAppEvents | Yomark.pdf accessed (not downloaded) |
+| 2026-06-11 03:39 | Stage 04 / EmailEvents | Fraudulent email sent to j.reynolds: "Updated Banking Details - Pacific IT Monthly" |
+| 2026-06-11 03:44 | Stage 04 / OfficeActivity | Fraud reinforced via Microsoft Teams |
+| 2026-06-11 05:08 | Stage 02 / CloudAppEvents | Last confirmed attacker activity |
 
 ---
 
@@ -820,13 +825,15 @@ Correlation ties every thread of the investigation back to one actor and one inf
 | Type | Value | Context |
 |---|---|---|
 | IP | 103.69.224.136 | Anon sign-in source, Amsterdam NL, linked to incidents 87241 and 87236 |
-| UPN | m.smith@lognpacific.org | Compromised finance account |
+| UPN | m.smith@lognpacific.org | Compromised finance account (Mark Smith) |
 | Session | 005d431a-380b-1f5e-e554-16d5010dc28e | Attacker session GUID spanning all app access |
-| IP | | |
-| Domain | | |
-| Domain | | |
-| Email | | |
-| OAuth App | | |
+| Email | merovingian1337@proton.me | External forwarding destination for Backup Copy inbox rule |
+| UPN | j.reynolds@lognpacific.org | Fraud target: recipient of fraudulent payment redirect email |
+| File | VPN-Access-Credentials.txt | Downloaded credential document from IT-Credentials folder |
+| File | Vendor-Banking-Details.txt | Downloaded file from Finance folder, directly supports fraud |
+| File | Yomark.pdf | Accessed credential store pointer, not downloaded |
+| Inbox Rule | Invoice Processing | Moves j.reynolds mail to Archive to conceal fraud reply |
+| Inbox Rule | Backup Copy | Forwards j.reynolds mail to merovingian1337@proton.me |
 
 ---
 
@@ -834,7 +841,7 @@ Correlation ties every thread of the investigation back to one actor and one inf
 
 | | |
 |---|---|
-| Flags captured | 11 / 38 |
+| Flags captured | 25 / 38 |
 | Hunt duration | |
 | Completed | |
 | Sign-off | |
