@@ -596,9 +596,18 @@ Persistence mechanisms that act without a live session are the hardest to detect
 
 ### Q26: Disprove the Innocent Explanation
 
-**Question:**
+**Question:** Call's coming in that this is just the user on a VPN. Read the authentication detail across the session and count how many times MFA was actually satisfied.
 
-**Answer:**
+**Answer:** `0`
+
+```kql
+SigninLogs
+| where UserPrincipalName == "m.smith@lognpacific.org"
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where ResultType == 0
+| where AuthenticationRequirement == "multiFactorAuthentication"
+| count
+```
 
 **Screenshot**
 
@@ -608,12 +617,15 @@ Persistence mechanisms that act without a live session are the hardest to detect
 
 ### Q27: Catch the Plant
 
-**Question:**
+**Question:** Walk the apps that session touched. One of them is where automation gets built, not where a finance user works. Name it.
 
-**Answer:**
+**Answer:** `Microsoft Flow Portal`
 
 ```kql
-
+SigninLogs
+| where UserPrincipalName == "m.smith@lognpacific.org"
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| distinct AppDisplayName
 ```
 
 **Screenshot**
@@ -624,13 +636,9 @@ Persistence mechanisms that act without a live session are the hardest to detect
 
 ### Q28: The Cause Behind the Forward
 
-**Question:**
+**Question:** The forward is in the mail logs. No rule made it, user wasn't online. Find the table that records what actually fired it.
 
-**Answer:**
-
-```kql
-
-```
+**Answer:** `MicrosoftGraphActivityLogs`
 
 **Screenshot**
 
@@ -640,12 +648,22 @@ Persistence mechanisms that act without a live session are the hardest to detect
 
 ### Q29: Prove It With the Sequence
 
-**Question:**
+**Question:** That forward is recorded twice, an API call and a mail event. Put them in order and tell me which came first.
 
-**Answer:**
+**Answer:** `The graph call`
 
 ```kql
+MicrosoftGraphActivityLogs
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where RequestUri contains "forward" or RequestUri contains "mail"
+| project TimeGenerated, RequestUri
+| order by TimeGenerated asc
 
+EmailEvents
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where SenderFromAddress == "m.smith@lognpacific.org" or RecipientEmailAddress == "merovingian1337@proton.me"
+| project TimeGenerated, Subject, SenderFromAddress, RecipientEmailAddress
+| order by TimeGenerated asc
 ```
 
 **Screenshot**
@@ -654,7 +672,10 @@ Persistence mechanisms that act without a live session are the hardest to detect
 
 **Stage 07 Notes**
 
-<!-- Fill in after stage is complete -->
+- MFA was satisfied 0 times across the entire session, directly disproving the "user on a VPN" explanation: a legitimate user authenticating via VPN would still satisfy MFA
+- Microsoft Flow Portal appearing in a finance user's session is the plant: Power Automate is a developer/automation tool with no legitimate use case for m.smith
+- The forward fired via a Graph API call, not an inbox rule, and not by a live user session: this is the automation built in Flow
+- The Graph call preceded the mail event, confirming the flow executed the forward programmatically before it appeared in the mail logs
 
 ---
 
