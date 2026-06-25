@@ -1,4 +1,4 @@
-# Threat Hunt: Second Vector
+# Threat Hunt: Second Victor
 ### M365 Compromise & Business Email Compromise
 
 ```
@@ -906,7 +906,7 @@ SigninLogs
 ## Sign-Off
 
 ```
-HUNT     : Second Vector
+HUNT     : Second Victor
 ANALYST  : Jarred Ward
 SCORE    : 38 / 38
 DATE     : June 24, 2026
