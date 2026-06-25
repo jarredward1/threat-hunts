@@ -1,4 +1,4 @@
-# Hunt 08: Second Vector
+# Threat Hunt: Second Vector
 ### M365 Compromise & Business Email Compromise
 
 ```
@@ -34,8 +34,6 @@ This is a cloud-only intrusion with no malware to reverse and no endpoint to ima
 | `EmailEvents` | Defender for Office 365 mail flow: messages sent and received |
 | `IdentityLogonEvents` | Defender for Identity: account logons across the identity estate |
 | `BehaviorAnalytics` | Entra UEBA derived signals: anomaly scoring on sign-in activity |
-
-> Query via Sentinel > Logs > KQL. Use `TableName | take 1` for a sample row, `TableName | getschema` for columns.
 
 ---
 
