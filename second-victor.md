@@ -499,27 +499,21 @@ OfficeActivity
 
 ## Stage 06: Data Theft
 
-**Context**
-
-| Field | Value |
-|---|---|
-| Files accessed | |
-| SharePoint / OneDrive activity | |
-| Volume estimate | |
-| Exfil method | |
-| Destination | |
-| Exfil window (UTC) | |
+Data theft is the final objective of the intrusion. This stage identifies what files the attacker took, how many, and what the selection tells you about intent. A small number of specific files points to targeted theft rather than bulk exfiltration. The evidence lives in CloudAppEvents, filtering on FileDownloaded and FileAccessed operations from the attacker's IP.
 
 ---
 
 ### Q22: The Exfil Operation
 
-**Question:**
+**Question:** One operation in the attacker's session is them taking copies out, not reading in place. Name that operation, and tell me how you separated it from the user's ordinary file activity.
 
-**Answer:**
+**Answer:** `FileDownloaded, 3 files copied out via attacker IP 103.69.224.136`
 
 ```kql
-
+CloudAppEvents
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where ActionType contains "download"
+| project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
 **Screenshot**
@@ -530,12 +524,15 @@ OfficeActivity
 
 ### Q23: Volume Taken
 
-**Question:**
+**Question:** Count the files they pulled in the session. Then tell me what that number says about the theft: was this someone grabbing whatever they could reach, or a deliberate pull of specific things.
 
-**Answer:**
+**Answer:** `3, deliberate pull of specific things`
 
 ```kql
-
+CloudAppEvents
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where ActionType contains "download"
+| project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
 **Screenshot**
@@ -546,12 +543,15 @@ OfficeActivity
 
 ### Q24: The Credential Document
 
-**Question:**
+**Question:** One of those files widens this past the mailbox. Name it.
 
-**Answer:**
+**Answer:** `VPN-Access-Credentials.txt`
 
 ```kql
-
+CloudAppEvents
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where ActionType contains "download"
+| project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
 **Screenshot**
@@ -562,6 +562,52 @@ OfficeActivity
 
 ### Q25: The Vault Pointer
 
+**Question:** They opened a file that points to a credential store, didn't download it. Look at access. Name the file.
+
+**Answer:** `Yomark.pdf`
+
+```kql
+CloudAppEvents
+| where TimeGenerated between (datetime(2026-06-11T03:00:00Z) .. datetime(2026-06-11T13:00:00Z))
+| where IPAddress contains "103.69.224.136"
+| where ObjectType == "File"
+| project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
+```
+
+**Screenshot**
+
+<!-- ![Q25](screenshots/q25.png) -->
+
+**Stage 06 Notes**
+
+- Three files downloaded at 03:37 UTC: `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, all from attacker IP 103.69.224.136
+- `Vendor-Banking-Details.txt` directly supports the fraud: the attacker likely read the real banking details before substituting their own
+- `VPN-Access-Credentials.txt` widens the compromise beyond the mailbox and suggests the attacker is positioning for persistent network access
+- `Yomark.pdf` was accessed but not downloaded: opened in place, likely a credential store index or password reference document
+- Session end time is approximately 05:08 UTC based on the last FileAccessed events visible in CloudAppEvents
+
+---
+
+## Stage 07: The Plant and the Trigger
+
+Persistence mechanisms that act without a live session are the hardest to detect and the most dangerous to leave in place. This stage focuses on proving that automated activity continued after the attacker signed out, identifying what triggered it, and building the sequence that disproves any innocent explanation for what happened.
+
+---
+
+### Q26: Disprove the Innocent Explanation
+
+**Question:**
+
+**Answer:**
+
+**Screenshot**
+
+<!-- ![Q26](screenshots/q26.png) -->
+
+---
+
+### Q27: Catch the Plant
+
 **Question:**
 
 **Answer:**
@@ -572,29 +618,185 @@ OfficeActivity
 
 **Screenshot**
 
-<!-- ![Q25](screenshots/q25.png) -->
+<!-- ![Q27](screenshots/q27.png) -->
 
 ---
 
-## Stages 07 and Beyond: Judgement
+### Q28: The Cause Behind the Forward
 
-*Flags Q26 to Q38 to be confirmed as stages are unlocked.*
+**Question:**
 
-| # | Title | Points | Answer |
-|---|---|---|---|
-| Q26 | | | |
-| Q27 | | | |
-| Q28 | | | |
-| Q29 | | | |
-| Q30 | | | |
-| Q31 | | | |
-| Q32 | | | |
-| Q33 | | | |
-| Q34 | | | |
-| Q35 | | | |
-| Q36 | | | |
-| Q37 | | | |
-| Q38 | | | |
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q28](screenshots/q28.png) -->
+
+---
+
+### Q29: Prove It With the Sequence
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q29](screenshots/q29.png) -->
+
+**Stage 07 Notes**
+
+<!-- Fill in after stage is complete -->
+
+---
+
+## Stage 08: Correlation and Containment
+
+Correlation ties every thread of the investigation back to one actor and one infrastructure. Containment orders the response so that the most dangerous footholds are closed first. This stage asks you to prove attribution across all sources, sequence the remediation steps correctly, and identify the control failures that let this happen.
+
+---
+
+### Q30: The Automation Source IP
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q30](screenshots/q30.png) -->
+
+---
+
+### Q31: The Automation Identity
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q31](screenshots/q31.png) -->
+
+---
+
+### Q32: (title to be confirmed)
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q32](screenshots/q32.png) -->
+
+---
+
+### Q33: One Actor, Every Source
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q33](screenshots/q33.png) -->
+
+---
+
+### Q34: Containment Ordering
+
+**Question:**
+
+**Answer:**
+
+**Screenshot**
+
+<!-- ![Q34](screenshots/q34.png) -->
+
+---
+
+### Q35: (title to be confirmed)
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q35](screenshots/q35.png) -->
+
+---
+
+### Q36: The Control That Never Fired
+
+**Question:**
+
+**Answer:**
+
+**Screenshot**
+
+<!-- ![Q36](screenshots/q36.png) -->
+
+---
+
+### Q37: Why Revoke Before Reset
+
+**Question:**
+
+**Answer:**
+
+**Screenshot**
+
+<!-- ![Q37](screenshots/q37.png) -->
+
+---
+
+### Q38: (title to be confirmed)
+
+**Question:**
+
+**Answer:**
+
+```kql
+
+```
+
+**Screenshot**
+
+<!-- ![Q38](screenshots/q38.png) -->
+
+**Stage 08 Notes**
+
+<!-- Fill in after stage is complete -->
 
 ---
 
