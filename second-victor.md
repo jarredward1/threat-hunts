@@ -300,7 +300,6 @@ SigninLogs
 - Every successful sign-in showed authenticationMethod "Previously satisfied": a stolen token with MFA already baked in was replayed with no re-prompt (MITRE T1550.004)
 - The token reached 7 distinct apps within the session window
 - SessionId 005d431a-380b-1f5e-e554-16d5010dc28e is consistent across all sign-in rows and is the pivot key into downstream tables
-- Session end time still unconfirmed: needs cross-referencing against later stage activity
 
 ---
 
@@ -798,14 +797,6 @@ MicrosoftGraphActivityLogs
 
 *AuditLogs is the only in-scope table with no IP address field containing the attacker IP.*
 
-```kql
-// Stage 08 · Run individually per table, count those returning > 0
-SigninLogs
-| where TimeGenerated between (datetime(2026-06-10T00:00:00Z) .. datetime(2026-06-20T23:59:59Z))
-| where IPAddress == "103.69.224.136"
-| count
-```
-
 ---
 
 ### ✅ Q34: Containment Ordering
@@ -903,9 +894,7 @@ SigninLogs
 
 ---
 
-## Summary
-
-## Summary
+## Executive Summary
 
 On June 11, 2026, a threat actor authenticated to `m.smith@lognpacific.org` by replaying a stolen session token from anonymized IP `103.69.224.136` in Amsterdam, bypassing MFA because the legacy browser client path fell outside the tenant's Conditional Access policies. After two failed password attempts, the actor entered via `One Outlook Web` at `03:09 UTC` and immediately queried the Graph API to confirm MFA was not registered on the account and to map the victim's group memberships via `/v1.0/me/memberOf` before taking any destructive action. Using context mined from a months-old internal payment thread `Q1 Vendor Payment Schedule - Review Required`, the actor sent a fraudulent banking detail update with subject `Updated Banking Details - Pacific IT Monthly` to finance approver `j.reynolds@lognpacific.org` and reinforced it through `Microsoft Teams` to simulate urgency from a trusted colleague. To suppress the fraud reply, two inbox rules were created targeting `j.reynolds@lognpacific.org`: rule `Invoice Processing` archiving inbound mail silently, and rule `Backup Copy` forwarding it externally to `merovingian1337@proton.me`. Three files were then deliberately pulled from SharePoint, `Book.xlsx`, `Vendor-Banking-Details.txt`, and `VPN-Access-Credentials.txt`, indicating the attacker was positioning for access well beyond the mailbox. Before signing out at approximately `05:08 UTC`, the actor planted a `Power Automate` flow (`7ab7862c-4c57-491e-8a45-d52a7e023983`) that fired autonomously at `12:41 UTC` from Azure infrastructure IP `20.150.129.194`, forwarding mail with no live session present. The stolen session token `005d431a-380b-1f5e-e554-16d5010dc28e` remained valid throughout, the inbox rules continued acting silently, and the flow continued executing: a password reset alone would not have contained this compromise.
 
