@@ -33,9 +33,16 @@ Date       : June 24, 2026
 
 ## Scenario
 
-Overnight, Microsoft Entra ID Protection raised Incident 87241 against a finance user: a sign-in from an anonymous IP, flagged on `m.smith`, rated **Low**. The night shift triaged it, found nothing actionable, and left it in the queue. Low-severity identity alerts on finance staff are exactly where a patient operator hides, and this one was no different.
+Overnight, Microsoft Entra ID Protection raised an incident against a finance user. A sign-in from an anonymous IP address, flagged on `m.smith` and rated Low. The night shift triaged it, found nothing they could act on, and left it in the queue. Low-severity identity alerts on finance staff are exactly where a patient operator hides.
 
-This is a cloud-only intrusion with no malware to reverse and no endpoint to image. Everything the attacker did was through identity, mail, files, and cloud services, and every action left a trace in a different table. The investigation spans sign-in logs, mailbox audit, Graph activity, and mail events. The detection caught one sign-in. It did not ask what happened next.
+This one is cloud. No malware to reverse, no endpoint to image. Everything the attacker did, they did through identity, mail, files and cloud services, and every action left a trace in a different table. You will move across the sign-in logs, the mailbox audit, the Graph activity and the mail events, and tie scattered records back to one session. The detection caught one sign-in. It did not ask what happened next.
+
+**What we do not yet know:**
+
+- Whether the Low rating is right, or whether the machine dismissed a full compromise
+- What the operator did once inside, and what they took
+- What persisted, and whether it still acts with nobody signed in
+- Who else was drawn into the fraud, and how
 
 ---
 
@@ -63,7 +70,6 @@ This is a cloud-only intrusion with no malware to reverse and no endpoint to ima
 
 **Answer:** `Tier-2 hunter ready`
 
-****
 
 <img width="569" height="107" alt="q00" src="https://github.com/user-attachments/assets/175a9904-6ae9-47d3-99d5-596fdbd92fe8" />
 
@@ -82,7 +88,6 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `m.smith@lognpacific.org`
 
-****
 
 <img width="905" height="133" alt="q01" src="https://github.com/user-attachments/assets/356c2b44-ccaa-48b1-b4cc-689d322b1159" />
 
@@ -94,7 +99,6 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `103.69.224.136`
 
-****
 
 <img width="721" height="105" alt="q02" src="https://github.com/user-attachments/assets/2b1628a8-539a-482a-b05f-36fd88b04525" />
 
@@ -106,7 +110,6 @@ Triage begins at the incident itself. The goal is to confirm who was targeted, w
 
 **Answer:** `Linux`
 
-****
 
 <img width="589" height="349" alt="q03" src="https://github.com/user-attachments/assets/7aac039b-1824-4b08-be77-940626000723" />
 
@@ -126,7 +129,6 @@ SigninLogs
 | project TimeGenerated, RiskEventTypes, RiskEventTypes_V2, RiskLevel, RiskDetail
 ```
 
-****
 
 <img width="625" height="227" alt="q04" src="https://github.com/user-attachments/assets/e634e044-7f41-400b-b946-7415309a62cd" />
 
@@ -147,7 +149,6 @@ SigninLogs
 | summarize count() by RiskState
 ```
 
-****
 
 <img width="293" height="135" alt="q05" src="https://github.com/user-attachments/assets/616baac4-3bd3-4f38-a919-0e76e5df82b3" />
 
@@ -159,9 +160,10 @@ SigninLogs
 
 **Answer:** `Enabled`
 
-****
 
 <img width="437" height="83" alt="q06" src="https://github.com/user-attachments/assets/97c4d5c5-af9e-49c0-bedd-74c4851f992e" />
+
+---
 
 > "The machine flagged the sign-in, rated it Low, dismissed its own detections, and left the account Enabled. A finance user on a Linux client from an anonymous Amsterdam IP is not a queue item. It is a confirmed compromise."
 
@@ -197,7 +199,6 @@ SigninLogs
 | project TimeGenerated, IPAddress, AuthenticationDetails, AuthenticationRequirement
 ```
 
-****
 
 <img width="808" height="130" alt="q07" src="https://github.com/user-attachments/assets/40fc9a22-2789-46e9-ac68-538dee617bd8" />
 
@@ -220,7 +221,6 @@ SigninLogs
 | project TimeGenerated, ResultSignature, AppDisplayName
 ```
 
-****
 
 <img width="559" height="118" alt="q08" src="https://github.com/user-attachments/assets/28db8d16-1644-4fad-8a29-2f702038ed06" />
 
@@ -242,7 +242,6 @@ SigninLogs
 | project TimeGenerated, ResultSignature, ResultDescription, Identity
 ```
 
-****
 
 <img width="714" height="134" alt="q09" src="https://github.com/user-attachments/assets/2e248165-8e43-4d17-a4ff-a8e81a14f70b" />
 
@@ -265,7 +264,6 @@ SigninLogs
 | count
 ```
 
-****
 
 <img width="304" height="134" alt="q10" src="https://github.com/user-attachments/assets/32a4eab5-d5da-485a-a4a1-4b8fca810a8b" />
 
@@ -288,9 +286,10 @@ SigninLogs
 | order by TimeGenerated asc
 ```
 
-****
 
 <img width="876" height="131" alt="q11" src="https://github.com/user-attachments/assets/ea35c32d-0320-49fd-8237-8e757c635735" />
+
+---
 
 > "Two failed attempts, then a hit. MFA never fired. One token, seven apps, no re-prompt. The attacker was inside the tenant for two hours and everything they did looked like routine browser activity."
 
@@ -326,7 +325,6 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, UserId, ResponseStatusCode
 ```
 
-****
 
 <img width="1294" height="131" alt="q12" src="https://github.com/user-attachments/assets/aa0a8277-a14e-4ecc-8135-93abf139a8e7" />
 
@@ -347,9 +345,10 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, UserId, ResponseStatusCode
 ```
 
-****
 
 <img width="510" height="100" alt="q13" src="https://github.com/user-attachments/assets/d3c0a460-b23b-494d-9365-376988ea2250" />
+
+---
 
 > "Before sending a single fraudulent message, the attacker confirmed MFA was not registered and mapped the victim's group memberships. This was not opportunistic. They checked whether the fraud would work before attempting it."
 
@@ -383,7 +382,6 @@ EmailEvents
 | project TimeGenerated, DeliveryLocation, EmailDirection, RecipientEmailAddress, Subject
 ```
 
-****
 
 <img width="1117" height="126" alt="q14" src="https://github.com/user-attachments/assets/5015d1bb-1ee4-430d-9fdf-5b33b9bb18ca" />
 
@@ -405,7 +403,6 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-****
 
 <img width="927" height="190" alt="q15" src="https://github.com/user-attachments/assets/9118fc7b-79bc-4def-9bfc-30c79ebcddd2" />
 
@@ -427,7 +424,6 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-****
 
 <img width="927" height="190" alt="q16" src="https://github.com/user-attachments/assets/284d3f36-916a-4062-91e7-94e0e787b49a" />
 
@@ -447,9 +443,10 @@ OfficeActivity
 | project TimeGenerated, OfficeWorkload, RecordType, Operation, UserId
 ```
 
-****
 
 <img width="927" height="161" alt="q17" src="https://github.com/user-attachments/assets/fe5cbcc7-5d33-48da-bdbf-96a04f88c230" />
+
+---
 
 > "The attacker read a months-old payment thread, used the language and context to construct a credible request, then sent it through both email and Teams. Two channels from a trusted colleague reads as urgency. This was not improvised."
 
@@ -484,7 +481,6 @@ OfficeActivity
 | project TimeGenerated, Operation, Parameters
 ```
 
-****
 
 <img width="536" height="424" alt="q18" src="https://github.com/user-attachments/assets/2bff0ac4-a099-40e0-8e9c-bda83b21bda2" />
 
@@ -513,7 +509,6 @@ OfficeActivity
 | project TimeGenerated, Operation, Parameters
 ```
 
-****
 
 <img width="536" height="362" alt="q20" src="https://github.com/user-attachments/assets/118d67f4-1610-46b7-89d6-e2a48616545d" />
 
@@ -524,6 +519,8 @@ OfficeActivity
 **Question:** Both mailbox rules act on inbound mail from one person. Tell me why the persistence rules single out their mail specifically. What conversation are the rules built to stop the victim from seeing.
 
 **Answer:** `fraud reply`
+
+---
 
 > "Two rules, one target. Invoice Processing archives the reply so m.smith never sees it. Backup Copy forwards it to ProtonMail so the attacker does. Both fire silently after the session ends. The inbox stays clean. The attacker stays informed."
 
@@ -558,7 +555,6 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-****
 
 <img width="978" height="168" alt="q22" src="https://github.com/user-attachments/assets/d664e74d-8428-4366-8bbf-b214a2fc369a" />
 
@@ -578,7 +574,6 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-****
 
 <img width="978" height="168" alt="q23" src="https://github.com/user-attachments/assets/650cc139-26bc-4029-a02a-628f9067c1eb" />
 
@@ -598,7 +593,6 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-****
 
 <img width="978" height="168" alt="q24" src="https://github.com/user-attachments/assets/947e0f5f-8709-4f16-9514-766216e9c6e7" />
 
@@ -619,9 +613,10 @@ CloudAppEvents
 | project TimeGenerated, ActionType, ObjectName, ObjectType, IPAddress
 ```
 
-****
 
 <img width="1019" height="159" alt="q25" src="https://github.com/user-attachments/assets/14a1d0d0-10d3-4dcc-bb7d-e509cc2180bb" />
+
+---
 
 > "Three files in 90 seconds: a financial ledger, the real vendor banking details, and VPN credentials. Each one has a purpose. Nothing was grabbed at random. The attacker knew exactly where to look."
 
@@ -658,7 +653,6 @@ SigninLogs
 | count
 ```
 
-****
 
 <img width="298" height="104" alt="q26" src="https://github.com/user-attachments/assets/f6429d4c-2b89-4f5e-aceb-da370733ea68" />
 
@@ -678,7 +672,6 @@ SigninLogs
 | distinct AppDisplayName
 ```
 
-****
 
 <img width="379" height="305" alt="q27" src="https://github.com/user-attachments/assets/284116d5-2317-4da6-ab8d-374941b17599" />
 
@@ -690,7 +683,6 @@ SigninLogs
 
 **Answer:** `MicrosoftGraphActivityLogs`
 
-****
 
 <img width="587" height="50" alt="q28" src="https://github.com/user-attachments/assets/7fa6f6d1-d00e-4a53-909b-dc49e34df987" />
 
@@ -718,10 +710,11 @@ EmailEvents
 | order by TimeGenerated asc
 ```
 
-****
 
 <img width="679" height="133" alt="q29a" src="https://github.com/user-attachments/assets/c58d95e5-d58e-4f95-b02e-8ff13743463d" />
 <img width="637" height="133" alt="q29b" src="https://github.com/user-attachments/assets/8354109f-0159-4507-ba63-aea7ca521615" />
+
+---
 
 > "The Graph API call fired at 12:41 UTC. The mail event appeared afterward. No user was signed in. Power Automate executed the forward autonomously, proving the attacker built persistence that outlasted their session."
 
@@ -754,7 +747,6 @@ MicrosoftGraphActivityLogs
 | where RequestUri contains "forward"
 ```
 
-****
 
 <img width="356" height="133" alt="q30" src="https://github.com/user-attachments/assets/2d966875-5f66-4724-a335-d533b1d431f9" />
 
@@ -774,7 +766,6 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, RequestUri, AppId
 ```
 
-****
 
 <img width="685" height="109" alt="q31" src="https://github.com/user-attachments/assets/5e7545d0-15e5-4029-b767-fbde11490b42" />
 
@@ -794,7 +785,6 @@ MicrosoftGraphActivityLogs
 | project TimeGenerated, AppId, UserAgent
 ```
 
-****
 
 <img width="1174" height="131" alt="q32" src="https://github.com/user-attachments/assets/aa17cb0a-5fc2-4d5b-9fa9-44e8ac27dd54" />
 
@@ -849,7 +839,6 @@ SigninLogs
 | project TimeGenerated, ConditionalAccessStatus, ClientAppUsed, AuthenticationRequirement
 ```
 
-****
 
 <img width="712" height="129" alt="q36" src="https://github.com/user-attachments/assets/10436533-212b-4103-853c-edd92e01258f" />
 
@@ -860,6 +849,10 @@ SigninLogs
 **Question:** Someone wants to reset m.smith's password and call it done. Tell me why a password reset alone doesn't lock this attacker out, and what action has to come first.
 
 **Answer:** `session token survives, revoke access`
+
+---
+
+> "A password reset changes the credential. It does not kill the session. The stolen token remains valid until explicitly revoked, meaning the attacker stays inside the tenant while the defender thinks the lock has been changed."
 
 **Stage 08 Notes**
 
@@ -873,23 +866,21 @@ SigninLogs
 
 ## Attack Timeline
 
-| Time (UTC) | Stage / Table | Event |
+| Time (UTC) | Table | Event |
 |---|---|---|
-| 2026-06-11 03:07 | Stage 02 / SigninLogs | 2 bad-password failures from 103.69.224.136 against m.smith |
-| 2026-06-11 03:09 | Stage 02 / SigninLogs | First successful sign-in via One Outlook Web, singleFactorAuthentication |
-| 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to userRegistrationDetails to confirm MFA not registered |
-| 2026-06-11 03:09 | Stage 03 / MicrosoftGraphActivityLogs | Graph API call to /v1.0/me/memberOf to enumerate group memberships |
-| 2026-06-11 03:09 | Stage 07 / SigninLogs | Sign-in to Microsoft Flow Portal to build forwarding automation |
-| 2026-06-11 03:13 | Stage 02 / SigninLogs | Token replayed across 7 apps with no MFA re-prompt |
-| 2026-06-11 03:13 | Stage 04 / OfficeActivity / EmailEvents | Mailbox recon: MailItemsAccessed events, thread "Q1 Vendor Payment Schedule - Review Required" read |
-| 2026-06-11 03:28 | Stage 05 / OfficeActivity | Inbox rule "Invoice Processing" created: moves j.reynolds mail to Archive |
-| 2026-06-11 03:32 | Stage 05 / OfficeActivity | Inbox rule "Backup Copy" created: forwards j.reynolds mail to merovingian1337@proton.me |
-| 2026-06-11 03:37 | Stage 06 / CloudAppEvents | 3 files downloaded: Book.xlsx, Vendor-Banking-Details.txt, VPN-Access-Credentials.txt |
-| 2026-06-11 03:39 | Stage 06 / CloudAppEvents | Yomark.pdf accessed (not downloaded) |
-| 2026-06-11 03:39 | Stage 04 / EmailEvents | Fraudulent email sent to j.reynolds: "Updated Banking Details - Pacific IT Monthly" |
-| 2026-06-11 03:44 | Stage 04 / OfficeActivity | Fraud reinforced via Microsoft Teams |
-| 2026-06-11 05:08 | Stage 02 / CloudAppEvents | Last confirmed attacker activity |
-| Post-session | Stage 07 / MicrosoftGraphActivityLogs | Power Automate flow fires forward from 20.150.129.194 with no live session |
+| 2026-06-11 03:07 | SigninLogs | 2 bad-password failures from 103.69.224.136 against m.smith |
+| 2026-06-11 03:09 | SigninLogs | First successful sign-in via One Outlook Web, singleFactorAuthentication |
+| 2026-06-11 03:09 | MicrosoftGraphActivityLogs | Graph API call to userRegistrationDetails to confirm MFA not registered |
+| 2026-06-11 03:09 | MicrosoftGraphActivityLogs | Graph API call to /v1.0/me/memberOf to enumerate group memberships |
+| 2026-06-11 03:13 | SigninLogs | Token replayed across 7 apps with no MFA re-prompt |
+| 2026-06-11 03:13 | OfficeActivity / EmailEvents | Mailbox recon: MailItemsAccessed events, thread "Q1 Vendor Payment Schedule - Review Required" read |
+| 2026-06-11 03:28 | OfficeActivity | Inbox rule "Invoice Processing" created: moves j.reynolds mail to Archive |
+| 2026-06-11 03:32 | OfficeActivity | Inbox rule "Backup Copy" created: forwards j.reynolds mail to merovingian1337@proton.me |
+| 2026-06-11 03:37 | CloudAppEvents | 3 files downloaded: Book.xlsx, Vendor-Banking-Details.txt, VPN-Access-Credentials.txt |
+| 2026-06-11 03:39 | CloudAppEvents | Yomark.pdf accessed (not downloaded) |
+| 2026-06-11 04:13 | EmailEvents | Fraudulent email sent to j.reynolds: "Updated Banking Details - Pacific IT Monthly" |
+| 2026-06-11 05:08 | CloudAppEvents | Last confirmed attacker activity |
+| 2026-06-11 12:41 | MicrosoftGraphActivityLogs | Power Automate flow fires forward from 20.150.129.194 with no live session |
 
 ---
 
@@ -914,13 +905,12 @@ SigninLogs
 
 ## Sign-Off
 
-| | |
-|---|---|
-| Flags captured | 38 / 38 |
-| Hunt duration | |
-| Completed | |
-| Sign-off | |
+```
+HUNT     : Second Vector
+ANALYST  : Jarred Ward
+SCORE    : 38 / 38
+DATE     : June 24, 2026
+STATUS   : Complete
+```
 
 ---
-
-*// CYBER RANGE // 0x48554E54 // LOG(N) Pacific // Incident 87241*
