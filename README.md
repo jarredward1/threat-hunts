@@ -1,14 +1,34 @@
 # Threat Hunts
 
-A collection of documented threat hunts completed on live cyber range environments. Each hunt covers a real intrusion scenario investigated through cloud telemetry, endpoint data, and identity logs using platforms including Microsoft Sentinel and Microsoft Defender XDR.
+> **Real scenarios. Live telemetry. No shortcuts.**
 
-Each writeup includes the full investigation: stage-by-stage flag breakdown, KQL queries, screenshots, attack timeline, and IOC register.
+A collection of documented threat hunts completed on live cyber range environments. Each hunt covers a real intrusion scenario investigated through cloud telemetry, endpoint data, and identity logs using Microsoft Sentinel and Microsoft Defender XDR. Every writeup includes the full investigation: stage-by-stage flag breakdown, KQL queries, annotated screenshots, attack timeline, and analyst notes.
 
 ---
 
-## Hunts
+## 🔍 What Is This?
 
-| Hunt | Scenario | Flags | Status |
-|---|---|---|---|
-| [Second Victor](./second-victor.md) | M365 identity compromise, BEC, and silent exfiltration via Power Automate | 38 / 38 | ✅ Complete |
+Threat hunting is not alert response. It is the deliberate, hypothesis-driven search for adversary behavior that has already bypassed automated controls. The hunts in this repository are conducted on live ranges where real attacker actions have been staged across cloud services, identity infrastructure, and endpoint telemetry.
 
+Hunts in this repository take two forms depending on the exercise type.
+
+Scored range hunts (like Second Victor) are structured as staged case files with verified flag answers, KQL queries, annotated screenshots, and analyst notes at each stage. Freeform investigations (like the TOR scenario) follow a narrative format: scenario context, steps taken, chronological timeline, and a full response summary, paired with a red-side document showing how the telemetry was generated.
+
+No simulated logs. No fabricated answers. Just real telemetry and the queries that surface it.
+
+---
+
+## ⚔️ Why It Matters
+
+Most detections catch the obvious. What they miss is the patient operator who signs in from a proxied IP, confirms MFA is not registered, reads a payment thread, and automates exfiltration before the shift changes. These hunts exist to build the skill of finding that kind of activity: cloud-native, identity-first, and designed to look like noise.
+
+The writeups are structured so the reasoning is visible at every step. Not just what was found, but what table it came from, what query surfaced it, and why it matters in context. A flag answered without understanding the telemetry is not a finding; it is a guess.
+
+---
+
+## 📂 Hunts at a Glance
+
+| Hunt | Platform | Scenario | Flags | Status |
+|---|---|---|---|---|
+| [Second Victor](second-victor.md) | Microsoft Sentinel / Defender XDR | M365 identity compromise, BEC, and silent exfiltration via Power Automate | 38 / 38 | ✅ Complete |
+| [TOR Scenario](tor-scenario/) | Microsoft Defender for Endpoint | Unauthorized TOR browser installation and usage on a managed endpoint (freeform investigation + red-side simulation) | N/A | ✅ Complete |
