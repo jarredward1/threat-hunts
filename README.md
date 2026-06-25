@@ -1,6 +1,6 @@
 # Threat Hunts
 
-A collection of documented threat hunts completed on live cyber range environments. Each hunt covers a real intrusion scenario investigated through cloud telemetry, endpoint data, and identity logs using platforms including Microsoft Sentinel and Microsoft Defender.
+A collection of documented threat hunts completed on live cyber range environments. Each hunt covers a real intrusion scenario investigated through cloud telemetry, endpoint data, and identity logs using platforms including Microsoft Sentinel and Microsoft Defender XDR.
 
 Each writeup includes the full investigation: stage-by-stage flag breakdown, KQL queries, screenshots, attack timeline, and IOC register.
 
