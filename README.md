@@ -45,3 +45,11 @@ The writeups are structured so the reasoning is visible at every step. Not just 
 |---|---|---|---|---|
 | [Second Victor](second-victor.md) | Microsoft Sentinel / Defender XDR | M365 identity compromise, BEC, and silent exfiltration via Power Automate | 38 / 38 | ✅ Complete |
 | [TOR Scenario](tor-scenario/) | Microsoft Defender for Endpoint | Unauthorized TOR browser installation and usage on a managed endpoint (freeform investigation + red-side simulation) | N/A | ✅ Complete |
+
+---
+
+## 👤 Author
+
+**Jarred Ward**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=for-the-badge)](https://www.linkedin.com/in/jarredward1/)
